@@ -1,8 +1,13 @@
 -- Helpers.lua - Utility Functions Module
 -- Handles all utility functions: notify, colors, UI helpers, etc.
 
-local Services = require(script.Parent.Services)
-local Config = require(script.Parent.Config)
+-- Modules loaded separately for executor use
+local Services = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Services
+local Config = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Config
+
+if not Services or not Config then
+    error("Helpers: Services and Config must be loaded first!")
+end
 
 -- Localized functions for performance
 local tinsert, tremove = table.insert, table.remove

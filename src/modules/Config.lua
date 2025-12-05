@@ -1,7 +1,14 @@
 -- Config.lua - Configuration Management Module
 -- Handles CONFIG table, COLORS, and save/load functions
 
-local Services = require(script.Parent.Services)
+-- Services loaded separately for executor use
+local Services = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Services
+if not Services then
+    -- Fallback: create minimal Services for HttpService
+    Services = {
+        HttpService = game:GetService("HttpService")
+    }
+end
 
 -- Initialize CONFIG from global or create new
 getgenv().KAWATAN_CONFIG = getgenv().KAWATAN_CONFIG or {

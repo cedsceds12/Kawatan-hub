@@ -1,9 +1,14 @@
 -- UI.lua - Fluent UI Wrapper Module
 -- Handles Fluent UI initialization and provides wrapper functions
 
-local Services = require(script.Parent.Services)
-local Config = require(script.Parent.Config)
-local Helpers = require(script.Parent.Helpers)
+-- Modules loaded separately for executor use
+local Services = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Services
+local Config = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Config
+local Helpers = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Helpers
+
+if not Services or not Config or not Helpers then
+    error("UI: Services, Config, and Helpers must be loaded first!")
+end
 
 -- Load Fluent library
 local Fluent = loadstring(game:HttpGet("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
