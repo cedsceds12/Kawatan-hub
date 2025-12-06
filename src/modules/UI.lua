@@ -47,7 +47,6 @@ local function CreateWindow(config)
     Tabs.Performance = Window:AddTab({ Title = "Perf", Icon = "" })
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
-    Tabs.Debugger = Window:AddTab({ Title = "Debug", Icon = "" })
     
     return Window, Tabs
 end
@@ -131,14 +130,23 @@ end
 -- Quick action buttons storage
 local quickActionButtons = {}
 
+-- Get Fluent theme accent color
+local function GetFluentAccentColor()
+    -- Fluent accent color from Window.luau source: Color3.fromRGB(76, 194, 255)
+    return Color3.fromRGB(76, 194, 255)
+end
+
 -- Create custom toggle button (hamburger menu)
 local function CreateCustomToggleButton(screenGui, config, colors)
     local btn = Instance.new("TextButton")
     btn.Name = "ToggleButton"
     btn.Size = UDim2.new(0, 50, 0, 50)
     btn.Position = config.TOGGLE_BTN_X and UDim2.new(0, config.TOGGLE_BTN_X, 0, config.TOGGLE_BTN_Y) or UDim2.new(1, -65, 0, 15)
-    btn.BackgroundColor3 = colors.Blue
-    btn.BackgroundTransparency = 0
+    
+    -- Fluent UI styling: semi-transparent background with accent color
+    local accentColor = GetFluentAccentColor()
+    btn.BackgroundColor3 = accentColor
+    btn.BackgroundTransparency = 0.3
     btn.Text = ""
     btn.BorderSizePixel = 0
     btn.ZIndex = 10
@@ -148,12 +156,19 @@ local function CreateCustomToggleButton(screenGui, config, colors)
     corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = btn
     
-    -- Create hamburger menu icon with 3 lines
+    -- Soft outline (UIStroke)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = accentColor
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = btn
+    
+    -- Create hamburger menu icon with 3 lines (blue accent color)
     for i = 1, 3 do
         local line = Instance.new("Frame")
         line.Size = UDim2.new(0, 24, 0, 3)
         line.Position = UDim2.new(0.5, -12, 0, 12 + (i-1) * 9)
-        line.BackgroundColor3 = colors.Text
+        line.BackgroundColor3 = accentColor
         line.BorderSizePixel = 0
         line.ZIndex = 11
         line.Parent = btn
@@ -169,6 +184,7 @@ local function CreateCustomToggleButton(screenGui, config, colors)
     local startPos = nil
     
     btn.InputBegan:Connect(function(input)
+        if config.TOGGLE_MENU_LOCKED then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
@@ -177,6 +193,7 @@ local function CreateCustomToggleButton(screenGui, config, colors)
     end)
     
     btn.InputEnded:Connect(function(input)
+        if config.TOGGLE_MENU_LOCKED then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if dragging then
                 dragging = false
@@ -188,6 +205,7 @@ local function CreateCustomToggleButton(screenGui, config, colors)
     end)
     
     game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if config.TOGGLE_MENU_LOCKED then return end
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local viewport = workspace.CurrentCamera.ViewportSize
             local delta = input.Position - dragStart
@@ -229,13 +247,15 @@ local function CreateQuickActionButton(screenGui, name, text, config, configKey,
     end
     btn.Position = config[xConfigKey] and UDim2.new(0, config[xConfigKey], 0, config[yConfigKey]) or UDim2.new(1, -55, 0, defaultY)
     
-    btn.BackgroundColor3 = colors.Blue
-    btn.BackgroundTransparency = 0
+    -- Fluent UI styling: semi-transparent background with accent color
+    local accentColor = GetFluentAccentColor()
+    btn.BackgroundColor3 = accentColor
+    btn.BackgroundTransparency = 0.3
     btn.Text = text
-    btn.TextColor3 = colors.Text
+    btn.TextColor3 = accentColor
     btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
-    btn.TextStrokeTransparency = 0.5
+    btn.TextStrokeTransparency = 1 -- Remove text stroke for cleaner look
     btn.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     btn.BorderSizePixel = 0
     btn.ZIndex = 10
@@ -244,6 +264,13 @@ local function CreateQuickActionButton(screenGui, name, text, config, configKey,
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = btn
+    
+    -- Soft outline (UIStroke)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = accentColor
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = btn
     
     btn.MouseButton1Click:Connect(function()
         if onClick then onClick() end

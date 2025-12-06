@@ -47,6 +47,7 @@ getgenv().KAWATAN_CONFIG = getgenv().KAWATAN_CONFIG or {
     QUICK_ACTION_LOCKED = false,
     TOGGLE_BTN_X = nil,
     TOGGLE_BTN_Y = nil,
+    TOGGLE_MENU_LOCKED = false,
 }
 
 -- Safe Teleport is always enabled (not configurable)
