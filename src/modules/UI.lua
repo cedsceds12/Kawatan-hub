@@ -48,6 +48,14 @@ local function CreateWindow(config)
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
     
+    -- Minimize window by default
+    pcall(function()
+        task.wait(0.2) -- Wait for window to fully initialize
+        if Window then
+            Window:Minimize()
+        end
+    end)
+    
     return Window, Tabs
 end
 
