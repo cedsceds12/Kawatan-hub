@@ -2,9 +2,9 @@
 -- Handles Fluent UI initialization and provides wrapper functions
 
 -- Modules loaded separately for executor use
-local Services = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Services
-local Config = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Config
-local Helpers = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Helpers
+local Services = getgenv().KH and getgenv().KH.Services
+local Config = getgenv().KH and getgenv().KH.Config
+local Helpers = getgenv().KH and getgenv().KH.Helpers
 
 if not Services or not Config or not Helpers then
     error("UI: Services, Config, and Helpers must be loaded first!")

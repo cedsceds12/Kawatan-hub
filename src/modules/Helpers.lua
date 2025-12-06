@@ -2,21 +2,18 @@
 -- Handles all utility functions: notify, colors, UI helpers, etc.
 
 -- Modules loaded separately for executor use
-local Services = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Services
-local Config = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Config
+local Services = getgenv().KH and getgenv().KH.Services
+local Config = getgenv().KH and getgenv().KH.Config
 
 if not Services or not Config then
     error("Helpers: Services and Config must be loaded first!")
 end
 
--- Localized functions for performance
-local tinsert, tremove = table.insert, table.remove
-local mathclamp, mathabs, mathmin, mathmax = math.clamp, math.abs, math.min, math.max
-local mathfloor, mathhuge = math.floor, math.huge
-local Vector3new, CFramenew = Vector3.new, CFrame.new
-
 local function notify(title, text)
-    -- Disabled for performance (27 calls removed)
+    -- Simple notification using UI if available
+    if getgenv().KH and getgenv().KH.UI then
+        getgenv().KH.UI.Notify(title, text)
+    end
 end
 
 local function blendColor(c1, c2, alpha)
@@ -103,16 +100,5 @@ return {
     tween = tween,
     isMobile = isMobile,
     getScale = getScale,
-    -- Localized functions
-    tinsert = tinsert,
-    tremove = tremove,
-    mathclamp = mathclamp,
-    mathabs = mathabs,
-    mathmin = mathmin,
-    mathmax = mathmax,
-    mathfloor = mathfloor,
-    mathhuge = mathhuge,
-    Vector3new = Vector3new,
-    CFramenew = CFramenew,
 }
 

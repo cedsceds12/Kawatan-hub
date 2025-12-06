@@ -2,29 +2,17 @@
 -- Handles CONFIG table, COLORS, and save/load functions
 
 -- Services loaded separately for executor use
-local Services = getgenv().KAWATAN_MODULES and getgenv().KAWATAN_MODULES.Services
+local Services = getgenv().KH and getgenv().KH.Services
 if not Services then
-    -- Fallback: create minimal Services for HttpService
-    Services = {
-        HttpService = game:GetService("HttpService")
-    }
+    Services = { HttpService = game:GetService("HttpService") }
 end
 
--- Initialize CONFIG from global or create new
+-- Initialize CONFIG from global or create new (trimmed to essentials)
 getgenv().KAWATAN_CONFIG = getgenv().KAWATAN_CONFIG or {
-    -- Settings (moved to top)
-    AUTO_TP_ENABLED = false,
-    AUTO_DESYNC_ENABLED = false,
-    TOP_BAR_VISIBLE = true,
-    
     -- Combat
     AUTO_STEAL_ENABLED = false,
     AUTO_STEAL_NEAREST_ENABLED = false,
-    AUTO_STEAL_FAST_INTERVAL = 0.08,
-    AUTO_STEAL_IDLE_INTERVAL = 0.5,
-    AUTO_STEAL_TRIGGER_DISTANCE = 30,
     STEAL_SPEED_ENABLED = false,
-    STEAL_DISABLE_ANIM_ENABLED = false,
     AIMBOT_ENABLED = false,
     
     -- Movement
@@ -37,33 +25,12 @@ getgenv().KAWATAN_CONFIG = getgenv().KAWATAN_CONFIG or {
     ANTI_LAG_ENABLED = false,
     ANTI_BEE_DISCO_ENABLED = false,
     ANTI_RAGDOLL_V2_ENABLED = false,
-    ERROR_SUPPRESSION_ENABLED = false,
     
     -- Visual
     ESP_PLAYERS_ENABLED = false,
     XRAY_BASE = false,
-    NO_CAM_COLLISION_ENABLED = false,
-    BASE_ESP_ENABLED = false,
     BEAM_TO_BEST_BRAINROT_ENABLED = false,
     BEAM_TO_BASE_ENABLED = false,
-    
-    -- UI Positions
-    MAIN_GUI_X = nil,
-    MAIN_GUI_Y = nil,
-    TOGGLE_BTN_X = nil,
-    TOGGLE_BTN_Y = nil,
-    
-    -- Quick Action Buttons
-    QUICK_TP_BTN_ENABLED = false,
-    QUICK_TP_BTN_X = nil,
-    QUICK_TP_BTN_Y = nil,
-    QUICK_CLONE_BTN_ENABLED = false,
-    QUICK_CLONE_BTN_X = nil,
-    QUICK_CLONE_BTN_Y = nil,
-    QUICK_FLOAT_BTN_ENABLED = false,
-    QUICK_FLOAT_BTN_X = nil,
-    QUICK_FLOAT_BTN_Y = nil,
-    QUICK_ACTION_LOCKED = false,
 }
 
 -- Safe Teleport is always enabled (not configurable)
