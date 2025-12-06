@@ -33,20 +33,11 @@ local function CreateWindow(config)
         Theme = "Darker"
     })
     
-    -- Hide Fluent's default toggle button
+    -- Hide Fluent's default HideButton (the toggle button)
     pcall(function()
-        task.wait(0.1) -- Wait for Fluent to create UI
-        local windowGui = Window and Window:GetGui()
-        if windowGui then
-            for _, child in ipairs(windowGui:GetDescendants()) do
-                if child:IsA("TextButton") and (
-                    child.Name:lower():find("toggle") or 
-                    child.Name:lower():find("minimize") or
-                    child.Name:lower():find("close")
-                ) then
-                    child.Visible = false
-                end
-            end
+        task.wait(0.1) -- Wait for Fluent to create the button
+        if Window and Window.HideButton then
+            Window.HideButton.Visible = false
         end
     end)
     
@@ -94,6 +85,19 @@ local function AddButton(tabName, title, callback)
     })
 end
 
+local function AddParagraph(tabName, title, content)
+    local tab = Tabs[tabName]
+    if not tab then 
+        warn("UI.AddParagraph: Tab '" .. tabName .. "' not found") 
+        return 
+    end
+    
+    return tab:CreateParagraph(title, {
+        Title = title,
+        Content = content or ""
+    })
+end
+
 local function Notify(title, text)
     if Window then
         Window:Notify({
@@ -110,7 +114,8 @@ end
 local function ToggleWindow()
     if Window then
         pcall(function()
-            Window:SetEnabled(not Window.Enabled)
+            -- Use Fluent's built-in Minimize method
+            Window:Minimize()
         end)
     end
 end
@@ -299,6 +304,7 @@ return {
     CreateWindow = CreateWindow,
     AddToggle = AddToggle,
     AddButton = AddButton,
+    AddParagraph = AddParagraph,
     Notify = Notify,
     ToggleWindow = ToggleWindow,
     GetWindow = GetWindow,
