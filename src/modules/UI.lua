@@ -33,10 +33,27 @@ local function CreateWindow(config)
         Theme = "Darker"
     })
     
+    -- Hide Fluent's default toggle button
+    pcall(function()
+        task.wait(0.1) -- Wait for Fluent to create UI
+        local windowGui = Window and Window:GetGui()
+        if windowGui then
+            for _, child in ipairs(windowGui:GetDescendants()) do
+                if child:IsA("TextButton") and (
+                    child.Name:lower():find("toggle") or 
+                    child.Name:lower():find("minimize") or
+                    child.Name:lower():find("close")
+                ) then
+                    child.Visible = false
+                end
+            end
+        end
+    end)
+    
     -- Create tabs
     Tabs.Combat = Window:AddTab({ Title = "Combat", Icon = "" })
     Tabs.Movement = Window:AddTab({ Title = "Movement", Icon = "" })
-    Tabs.Performance = Window:AddTab({ Title = "Performance", Icon = "" })
+    Tabs.Performance = Window:AddTab({ Title = "Perf", Icon = "" })
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
     Tabs.Debugger = Window:AddTab({ Title = "Debug", Icon = "" })
@@ -106,6 +123,178 @@ local function GetTabs()
     return Tabs
 end
 
+-- Quick action buttons storage
+local quickActionButtons = {}
+
+-- Create custom toggle button (hamburger menu)
+local function CreateCustomToggleButton(screenGui, config, colors)
+    local btn = Instance.new("TextButton")
+    btn.Name = "ToggleButton"
+    btn.Size = UDim2.new(0, 50, 0, 50)
+    btn.Position = config.TOGGLE_BTN_X and UDim2.new(0, config.TOGGLE_BTN_X, 0, config.TOGGLE_BTN_Y) or UDim2.new(1, -65, 0, 15)
+    btn.BackgroundColor3 = colors.Blue
+    btn.BackgroundTransparency = 0
+    btn.Text = ""
+    btn.BorderSizePixel = 0
+    btn.ZIndex = 10
+    btn.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = btn
+    
+    -- Create hamburger menu icon with 3 lines
+    for i = 1, 3 do
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(0, 24, 0, 3)
+        line.Position = UDim2.new(0.5, -12, 0, 12 + (i-1) * 9)
+        line.BackgroundColor3 = colors.Text
+        line.BorderSizePixel = 0
+        line.ZIndex = 11
+        line.Parent = btn
+        
+        local lineCorner = Instance.new("UICorner")
+        lineCorner.CornerRadius = UDim.new(0, 2)
+        lineCorner.Parent = line
+    end
+    
+    -- Dragging logic
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = btn.AbsolutePosition
+        end
+    end)
+    
+    btn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                config.TOGGLE_BTN_X = btn.AbsolutePosition.X
+                config.TOGGLE_BTN_Y = btn.AbsolutePosition.Y
+                Config.saveConfigDebounced()
+            end
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local viewport = workspace.CurrentCamera.ViewportSize
+            local delta = input.Position - dragStart
+            local newX = startPos.X + delta.X
+            local newY = startPos.Y + delta.Y
+            local btnSize = btn.AbsoluteSize
+            
+            newX = math.clamp(newX, 0, viewport.X - btnSize.X)
+            newY = math.clamp(newY, 0, viewport.Y - btnSize.Y)
+            
+            btn.Position = UDim2.new(0, newX, 0, newY)
+        end
+    end)
+    
+    -- Connect to toggle Fluent window
+    btn.MouseButton1Click:Connect(function()
+        ToggleWindow()
+    end)
+    
+    return btn
+end
+
+-- Create quick action button
+local function CreateQuickActionButton(screenGui, name, text, config, configKey, xConfigKey, yConfigKey, onClick, colors)
+    if not config[configKey] then return nil end
+    
+    if quickActionButtons[name] then
+        quickActionButtons[name]:Destroy()
+        quickActionButtons[name] = nil
+    end
+    
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Size = UDim2.new(0, 40, 0, 40)
+    
+    local defaultY = 15
+    if config.TOGGLE_BTN_Y then
+        defaultY = config.TOGGLE_BTN_Y + 50
+    end
+    btn.Position = config[xConfigKey] and UDim2.new(0, config[xConfigKey], 0, config[yConfigKey]) or UDim2.new(1, -55, 0, defaultY)
+    
+    btn.BackgroundColor3 = colors.Blue
+    btn.BackgroundTransparency = 0
+    btn.Text = text
+    btn.TextColor3 = colors.Text
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.TextStrokeTransparency = 0.5
+    btn.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    btn.BorderSizePixel = 0
+    btn.ZIndex = 10
+    btn.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = btn
+    
+    btn.MouseButton1Click:Connect(function()
+        if onClick then onClick() end
+    end)
+    
+    -- Dragging logic
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    btn.InputBegan:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = btn.AbsolutePosition
+        end
+    end)
+    
+    btn.InputEnded:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                config[xConfigKey] = btn.AbsolutePosition.X
+                config[yConfigKey] = btn.AbsolutePosition.Y
+                Config.saveConfigDebounced()
+            end
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local viewport = workspace.CurrentCamera.ViewportSize
+            local delta = input.Position - dragStart
+            local newX = startPos.X + delta.X
+            local newY = startPos.Y + delta.Y
+            local btnSize = btn.AbsoluteSize
+            
+            newX = math.clamp(newX, 0, viewport.X - btnSize.X)
+            newY = math.clamp(newY, 0, viewport.Y - btnSize.Y)
+            
+            btn.Position = UDim2.new(0, newX, 0, newY)
+        end
+    end)
+    
+    quickActionButtons[name] = btn
+    return btn
+end
+
+-- Get quick action buttons table
+local function GetQuickActionButtons()
+    return quickActionButtons
+end
+
 return {
     CreateWindow = CreateWindow,
     AddToggle = AddToggle,
@@ -113,7 +302,9 @@ return {
     Notify = Notify,
     ToggleWindow = ToggleWindow,
     GetWindow = GetWindow,
+    CreateCustomToggleButton = CreateCustomToggleButton,
+    CreateQuickActionButton = CreateQuickActionButton,
+    GetQuickActionButtons = GetQuickActionButtons,
     Tabs = Tabs, -- Export tabs directly for more granular control if needed
 }
-
 

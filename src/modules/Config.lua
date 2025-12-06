@@ -33,6 +33,20 @@ getgenv().KAWATAN_CONFIG = getgenv().KAWATAN_CONFIG or {
     XRAY_BASE = false,
     BEAM_TO_BEST_BRAINROT_ENABLED = false,
     BEAM_TO_BASE_ENABLED = false,
+    
+    -- Quick Action Buttons
+    QUICK_TP_BTN_ENABLED = false,
+    QUICK_TP_BTN_X = nil,
+    QUICK_TP_BTN_Y = nil,
+    QUICK_CLONE_BTN_ENABLED = false,
+    QUICK_CLONE_BTN_X = nil,
+    QUICK_CLONE_BTN_Y = nil,
+    QUICK_FLOAT_BTN_ENABLED = false,
+    QUICK_FLOAT_BTN_X = nil,
+    QUICK_FLOAT_BTN_Y = nil,
+    QUICK_ACTION_LOCKED = false,
+    TOGGLE_BTN_X = nil,
+    TOGGLE_BTN_Y = nil,
 }
 
 -- Safe Teleport is always enabled (not configurable)
@@ -93,5 +107,4 @@ return {
     loadConfig = loadConfig,
     saveConfigDebounced = saveConfigDebounced
 }
-
 
