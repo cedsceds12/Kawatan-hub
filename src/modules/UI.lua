@@ -39,6 +39,7 @@ local function CreateWindow(config)
     Tabs.Performance = Window:AddTab({ Title = "Perf", Icon = "" })
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
+    Tabs.Debugger = Window:AddTab({ Title = "Debug", Icon = "" })
     
     return Window, Tabs
 end
@@ -112,4 +113,5 @@ return {
     GetWindow = GetWindow,
     Tabs = Tabs, -- Export tabs directly for more granular control if needed
 }
+
 
