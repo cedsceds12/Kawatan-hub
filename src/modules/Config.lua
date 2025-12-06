@@ -15,7 +15,6 @@ getgenv().KAWATAN_CONFIG = getgenv().KAWATAN_CONFIG or {
     AUTO_STEAL_FAST_INTERVAL = 0.08,
     AUTO_STEAL_IDLE_INTERVAL = 0.5,
     AUTO_STEAL_TRIGGER_DISTANCE = 30,
-    STEAL_SPEED_ENABLED = false,
     AIMBOT_ENABLED = false,
     
     -- Movement
@@ -94,4 +93,5 @@ return {
     loadConfig = loadConfig,
     saveConfigDebounced = saveConfigDebounced
 }
+
 
