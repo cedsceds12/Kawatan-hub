@@ -21,7 +21,7 @@ local function CreateWindow(config)
     
     -- Mobile detection
     local isMobile = Helpers.isMobile()
-    local windowSize = isMobile and UDim2.fromOffset(380, 400) or UDim2.fromOffset(520, 460)
+    local windowSize = isMobile and UDim2.fromOffset(380, 300) or UDim2.fromOffset(520, 460)
     local tabWidth = isMobile and 120 or 160
     
     -- Create Fluent window
