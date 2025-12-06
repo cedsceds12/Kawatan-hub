@@ -97,6 +97,20 @@ local function AddParagraph(tabName, title, content)
     })
 end
 
+local function AddSection(tabName, title, collapsible, defaultCollapsed)
+    local tab = Tabs[tabName]
+    if not tab then 
+        warn("UI.AddSection: Tab '" .. tabName .. "' not found") 
+        return nil
+    end
+    
+    return tab:CreateSection({
+        Title = title,
+        Collapsible = collapsible or false,
+        DefaultCollapsed = defaultCollapsed or false
+    })
+end
+
 local function Notify(title, text)
     if Window then
         Window:Notify({
@@ -136,6 +150,12 @@ local function GetFluentAccentColor()
     return Color3.fromRGB(76, 194, 255)
 end
 
+-- Get Fluent theme surface color (grey background)
+local function GetFluentSurfaceColor()
+    -- Fluent UI uses grey/transparent backgrounds for buttons
+    return Color3.fromRGB(30, 30, 30)
+end
+
 -- Create custom toggle button (hamburger menu)
 local function CreateCustomToggleButton(screenGui, config, colors)
     local btn = Instance.new("TextButton")
@@ -143,9 +163,10 @@ local function CreateCustomToggleButton(screenGui, config, colors)
     btn.Size = UDim2.new(0, 50, 0, 50)
     btn.Position = config.TOGGLE_BTN_X and UDim2.new(0, config.TOGGLE_BTN_X, 0, config.TOGGLE_BTN_Y) or UDim2.new(1, -65, 0, 15)
     
-    -- Fluent UI styling: semi-transparent background with accent color
+    -- Fluent UI styling: semi-transparent grey background with blue accent
     local accentColor = GetFluentAccentColor()
-    btn.BackgroundColor3 = accentColor
+    local surfaceColor = GetFluentSurfaceColor()
+    btn.BackgroundColor3 = surfaceColor
     btn.BackgroundTransparency = 0.3
     btn.Text = ""
     btn.BorderSizePixel = 0
@@ -247,9 +268,10 @@ local function CreateQuickActionButton(screenGui, name, text, config, configKey,
     end
     btn.Position = config[xConfigKey] and UDim2.new(0, config[xConfigKey], 0, config[yConfigKey]) or UDim2.new(1, -55, 0, defaultY)
     
-    -- Fluent UI styling: semi-transparent background with accent color
+    -- Fluent UI styling: semi-transparent grey background with blue accent
     local accentColor = GetFluentAccentColor()
-    btn.BackgroundColor3 = accentColor
+    local surfaceColor = GetFluentSurfaceColor()
+    btn.BackgroundColor3 = surfaceColor
     btn.BackgroundTransparency = 0.3
     btn.Text = text
     btn.TextColor3 = accentColor
@@ -332,6 +354,7 @@ return {
     AddToggle = AddToggle,
     AddButton = AddButton,
     AddParagraph = AddParagraph,
+    AddSection = AddSection,
     Notify = Notify,
     ToggleWindow = ToggleWindow,
     GetWindow = GetWindow,
