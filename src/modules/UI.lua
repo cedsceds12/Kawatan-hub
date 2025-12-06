@@ -97,20 +97,6 @@ local function AddParagraph(tabName, title, content)
     })
 end
 
-local function AddSection(tabName, title, collapsible, defaultCollapsed)
-    local tab = Tabs[tabName]
-    if not tab then 
-        warn("UI.AddSection: Tab '" .. tabName .. "' not found") 
-        return nil
-    end
-    
-    return tab:CreateSection({
-        Title = title,
-        Collapsible = collapsible or false,
-        DefaultCollapsed = defaultCollapsed or false
-    })
-end
-
 local function Notify(title, text)
     if Window then
         Window:Notify({
@@ -354,7 +340,6 @@ return {
     AddToggle = AddToggle,
     AddButton = AddButton,
     AddParagraph = AddParagraph,
-    AddSection = AddSection,
     Notify = Notify,
     ToggleWindow = ToggleWindow,
     GetWindow = GetWindow,
