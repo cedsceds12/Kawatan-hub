@@ -26,7 +26,7 @@ local function CreateWindow(config)
     
     -- Create Fluent window
     Window = Fluent:CreateWindow({
-        Title = config.title or "Kawatan Hub",
+        Title = config.title or "KAWATAN HUB",
         SubTitle = config.subtitle or "Made by Cedced",
         TabWidth = tabWidth,
         Size = windowSize,
