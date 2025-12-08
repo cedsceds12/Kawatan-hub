@@ -47,6 +47,7 @@ local function CreateWindow(config)
     Tabs.Performance = Window:AddTab({ Title = "Perf", Icon = "" })
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
+    Tabs.Keybinds = Window:AddTab({ Title = "Keybinds", Icon = "" })
     
     -- Minimize window by default
     pcall(function()
@@ -103,6 +104,55 @@ local function AddParagraph(tabName, title, content)
         Title = title,
         Content = content or ""
     })
+end
+
+-- Keybind storage
+local keybindStorage = {}
+
+local function AddKeybind(tabName, name, title, configKey, mode, defaultKey, callback, changedCallback)
+    local tab = Tabs[tabName]
+    if not tab then 
+        warn("UI.AddKeybind: Tab '" .. tabName .. "' not found") 
+        return nil
+    end
+    
+    -- Convert Enum.KeyCode to string if needed
+    local defaultKeyStr = defaultKey
+    if typeof(defaultKey) == "EnumItem" then
+        defaultKeyStr = defaultKey.Name
+    elseif Config.CONFIG[configKey] then
+        -- Load from config if exists
+        local configKeybind = Config.CONFIG[configKey]
+        if typeof(configKeybind) == "EnumItem" then
+            defaultKeyStr = configKeybind.Name
+        else
+            defaultKeyStr = tostring(configKeybind)
+        end
+    end
+    
+    -- Create keybind using Fluent
+    local keybind = tab:CreateKeybind(name, {
+        Title = title,
+        Mode = mode or "Toggle",
+        Default = defaultKeyStr,
+        Callback = function(Value)
+            if callback then callback(Value) end
+        end,
+        ChangedCallback = function(New)
+            -- Save to config
+            Config.CONFIG[configKey] = New
+            Config.saveConfig()
+            if changedCallback then changedCallback(New) end
+        end
+    })
+    
+    -- Store reference
+    keybindStorage[name] = keybind
+    return keybind
+end
+
+local function GetKeybind(name)
+    return keybindStorage[name]
 end
 
 local function Notify(title, text)
@@ -348,6 +398,8 @@ return {
     AddToggle = AddToggle,
     AddButton = AddButton,
     AddParagraph = AddParagraph,
+    AddKeybind = AddKeybind,
+    GetKeybind = GetKeybind,
     Notify = Notify,
     ToggleWindow = ToggleWindow,
     GetWindow = GetWindow,
