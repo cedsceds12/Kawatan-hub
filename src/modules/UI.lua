@@ -26,8 +26,7 @@ local function CreateWindow(config)
     
     -- Create Fluent window
     Window = Fluent:CreateWindow({
-        Title = config.title or "KAWATAN HUB",
-        SubTitle = config.subtitle or "Made by Cedced",
+        Title = config.title or "Kawatan Hub v3.0",
         TabWidth = tabWidth,
         Size = windowSize,
         Acrylic = true,
@@ -69,6 +68,7 @@ local function AddToggle(tabName, title, configKey, enableFunc, disableFunc)
     end
     
     tab:AddToggle(title, {
+        Title = title,
         Default = Config.CONFIG[configKey] or false,
         Callback = function(Value)
             Config.CONFIG[configKey] = Value
@@ -88,6 +88,7 @@ local function AddButton(tabName, title, callback)
     
     tab:AddButton({
         Title = title,
+        Description = "",
         Callback = callback or function() end
     })
 end
@@ -100,6 +101,7 @@ local function AddParagraph(tabName, title, content)
     end
     
     return tab:CreateParagraph(title, {
+        Title = title,
         Content = content or ""
     })
 end
