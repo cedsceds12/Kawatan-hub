@@ -45,7 +45,7 @@ local function CreateWindow(config)
     -- Create tabs
     Tabs.Combat = Window:AddTab({ Title = "Combat", Icon = "" })
     Tabs.Movement = Window:AddTab({ Title = "Movement", Icon = "" })
-    Tabs.Performance = Window:AddTab({ Title = "Perf", Icon = "" })
+    Tabs.Performance = Window:AddTab({ Title = "Performance", Icon = "" })
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
     Tabs.Keybinds = Window:AddTab({ Title = "Keybinds", Icon = "" })
