@@ -534,8 +534,10 @@ local function CreateSpeedCustomizer(screenGui, config)
     local containerWidth = isMobile and 180 or 200
     local containerHeight = isMobile and 70 or 80
     container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
-    container.Position = UDim2.new(0.5, 0, 0, 50)
-    container.AnchorPoint = Vector2.new(0.5, 0)
+    -- Load saved position or default to below top bar
+    local defaultY = 50
+    container.Position = config.QUICK_SPEED_BTN_X and UDim2.new(0, config.QUICK_SPEED_BTN_X, 0, config.QUICK_SPEED_BTN_Y) or UDim2.new(0.5, 0, 0, defaultY)
+    container.AnchorPoint = config.QUICK_SPEED_BTN_X and Vector2.new(0, 0) or Vector2.new(0.5, 0)
     container.BackgroundColor3 = surfaceColor
     container.BackgroundTransparency = 0.1
     container.BorderSizePixel = 0
@@ -559,7 +561,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     padding.PaddingBottom = UDim.new(0, 10)
     padding.Parent = container
     
-    -- Title
+    -- Title (also acts as drag handle)
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 15)
     title.Position = UDim2.new(0, 0, 0, 0)
@@ -569,6 +571,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     title.TextSize = 11
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Active = true  -- Make it capture input for dragging
     title.Parent = container
     
     -- Input box
@@ -676,6 +679,45 @@ local function CreateSpeedCustomizer(screenGui, config)
         input.Text = "25.5"
         config.STEAL_SPEED = 25.5
         Config.saveConfigDebounced()
+    end)
+    
+    -- Dragging logic (use title as drag handle)
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    title.InputBegan:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = container.AbsolutePosition
+        end
+    end)
+    
+    title.InputEnded:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                config.QUICK_SPEED_BTN_X = container.AbsolutePosition.X
+                config.QUICK_SPEED_BTN_Y = container.AbsolutePosition.Y
+                -- Update anchor point when position is saved (no longer centered)
+                container.AnchorPoint = Vector2.new(0, 0)
+                Config.saveConfigDebounced()
+            end
+        end
+    end)
+    
+    Services.UserInputService.InputChanged:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            local newX = startPos.X + delta.X
+            local newY = startPos.Y + delta.Y
+            
+            container.Position = UDim2.new(0, newX, 0, newY)
+        end
     end)
     
     -- Store references for easy access
