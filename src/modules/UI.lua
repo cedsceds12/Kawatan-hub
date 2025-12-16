@@ -451,6 +451,7 @@ local function CreateTopBar(screenGui)
     title.TextColor3 = accentColor
     title.TextSize = 13
     title.Font = Enum.Font.GothamBold
+    title.ZIndex = 1000
     title.Parent = topBar
     
     -- Separator
@@ -463,6 +464,7 @@ local function CreateTopBar(screenGui)
     separator.TextTransparency = 0.5
     separator.TextSize = 13
     separator.Font = Enum.Font.GothamBold
+    separator.ZIndex = 1000
     separator.Parent = topBar
     
     -- FPS
@@ -474,6 +476,7 @@ local function CreateTopBar(screenGui)
     fpsLabel.TextColor3 = accentColor
     fpsLabel.TextSize = 12
     fpsLabel.Font = Enum.Font.GothamBold
+    fpsLabel.ZIndex = 1000
     fpsLabel.Parent = topBar
     
     -- PING
@@ -485,6 +488,7 @@ local function CreateTopBar(screenGui)
     pingLabel.TextColor3 = accentColor
     pingLabel.TextSize = 12
     pingLabel.Font = Enum.Font.GothamBold
+    pingLabel.ZIndex = 1000
     pingLabel.Parent = topBar
     
     -- Auto-size container after layout updates
@@ -572,6 +576,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Active = true  -- Make it capture input for dragging
+    title.ZIndex = 1000
     title.Parent = container
     
     -- Input box
@@ -589,6 +594,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     input.PlaceholderText = "16-50"
     input.ClearTextOnFocus = false
     input.TextTransparency = config.STEAL_SPEED_ENABLED and 0 or 0.5
+    input.ZIndex = 1000
     input.Parent = container
     
     local inputCorner = Instance.new("UICorner")
@@ -613,6 +619,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     toggleBtn.TextColor3 = accentColor
     toggleBtn.TextSize = 11
     toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.ZIndex = 1000
     toggleBtn.Parent = container
     
     local toggleCorner = Instance.new("UICorner")
@@ -636,6 +643,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     resetBtn.TextColor3 = accentColor
     resetBtn.TextSize = 11
     resetBtn.Font = Enum.Font.GothamBold
+    resetBtn.ZIndex = 1000
     resetBtn.Parent = container
     
     local resetCorner = Instance.new("UICorner")
@@ -720,10 +728,10 @@ local function CreateSpeedCustomizer(screenGui, config)
         end
     end)
     
-    -- Store references for easy access
-    container.SpeedInput = input
-    container.ToggleButton = toggleBtn
+    -- Store references in customUIElements (can't assign custom properties to Frame)
     customUIElements.speedCustomizer = container
+    customUIElements.speedCustomizerInput = input
+    customUIElements.speedCustomizerToggle = toggleBtn
     
     return container
 end
