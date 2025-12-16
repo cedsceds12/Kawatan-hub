@@ -536,7 +536,8 @@ local function CreateSpeedCustomizer(screenGui, config)
     local container = Instance.new("Frame")
     container.Name = "SpeedCustomizer"
     local containerWidth = isMobile and 180 or 200
-    local containerHeight = isMobile and 70 or 80
+    -- Fixed height calculation: 10 (top pad) + 15 (title) + 8 (margin) + 24 (input) + 6 (margin) + 24 (buttons) + 10 (bottom pad) = 97px
+    local containerHeight = isMobile and 95 or 97
     container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
     -- Load saved position or default to below top bar
     local defaultY = 50
@@ -565,7 +566,7 @@ local function CreateSpeedCustomizer(screenGui, config)
     padding.PaddingBottom = UDim.new(0, 10)
     padding.Parent = container
     
-    -- Title (also acts as drag handle)
+    -- Title (TextLabel - non-interactive text)
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 15)
     title.Position = UDim2.new(0, 0, 0, 0)
@@ -575,15 +576,23 @@ local function CreateSpeedCustomizer(screenGui, config)
     title.TextSize = 11
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Active = true  -- Make it capture input for dragging
     title.ZIndex = 1000
     title.Parent = container
     
-    -- Input box
+    -- Drag handle (invisible button over title area for dragging)
+    local dragHandle = Instance.new("TextButton")
+    dragHandle.Size = UDim2.new(1, 0, 0, 15)
+    dragHandle.Position = UDim2.new(0, 0, 0, 0)
+    dragHandle.BackgroundTransparency = 1
+    dragHandle.Text = ""
+    dragHandle.ZIndex = 1001
+    dragHandle.Parent = container
+    
+    -- Input box (positioned after title + 8px margin)
     local input = Instance.new("TextBox")
     input.Name = "SpeedInput"
     input.Size = UDim2.new(1, 0, 0, 24)
-    input.Position = UDim2.new(0, 0, 0, 21)
+    input.Position = UDim2.new(0, 0, 0, 23) -- 15 (title) + 8 (margin) = 23
     input.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     input.BackgroundTransparency = 0.4
     input.BorderSizePixel = 0
@@ -610,9 +619,11 @@ local function CreateSpeedCustomizer(screenGui, config)
     -- Toggle button
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Name = "ToggleButton"
-    toggleBtn.Size = UDim2.new(0.48, 0, 0, 24)
-    toggleBtn.Position = UDim2.new(0, 0, 0, 51)
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    toggleBtn.Size = UDim2.new(0.48, -3, 0, 24) -- -3 for gap between buttons
+    toggleBtn.Position = UDim2.new(0, 0, 0, 53) -- 23 (input Y) + 24 (input height) + 6 (margin) = 53
+    -- When enabled: use accent color background with 0.3 opacity (0.7 transparency)
+    -- When disabled: use dark background with 0.6 opacity (0.4 transparency)
+    toggleBtn.BackgroundColor3 = config.STEAL_SPEED_ENABLED and accentColor or Color3.fromRGB(50, 50, 70)
     toggleBtn.BackgroundTransparency = config.STEAL_SPEED_ENABLED and 0.7 or 0.4
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = config.STEAL_SPEED_ENABLED and "Enabled" or "Disabled"
@@ -629,13 +640,15 @@ local function CreateSpeedCustomizer(screenGui, config)
     local toggleStroke = Instance.new("UIStroke")
     toggleStroke.Color = accentColor
     toggleStroke.Thickness = 1
-    toggleStroke.Transparency = 0.7
+    -- When enabled: full opacity border (0 transparency) for stronger accent
+    -- When disabled: semi-transparent border (0.7 transparency)
+    toggleStroke.Transparency = config.STEAL_SPEED_ENABLED and 0 or 0.7
     toggleStroke.Parent = toggleBtn
     
     -- Reset button
     local resetBtn = Instance.new("TextButton")
-    resetBtn.Size = UDim2.new(0.48, 0, 0, 24)
-    resetBtn.Position = UDim2.new(0.52, 0, 0, 51)
+    resetBtn.Size = UDim2.new(0.48, -3, 0, 24)
+    resetBtn.Position = UDim2.new(0.52, 3, 0, 53) -- 0.52 (position) + 3px offset for gap
     resetBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     resetBtn.BackgroundTransparency = 0.4
     resetBtn.BorderSizePixel = 0
@@ -669,7 +682,12 @@ local function CreateSpeedCustomizer(screenGui, config)
     toggleBtn.MouseButton1Click:Connect(function()
         config.STEAL_SPEED_ENABLED = not config.STEAL_SPEED_ENABLED
         toggleBtn.Text = config.STEAL_SPEED_ENABLED and "Enabled" or "Disabled"
+        
+        -- Update button styling to match HTML active state
+        toggleBtn.BackgroundColor3 = config.STEAL_SPEED_ENABLED and accentColor or Color3.fromRGB(50, 50, 70)
         toggleBtn.BackgroundTransparency = config.STEAL_SPEED_ENABLED and 0.7 or 0.4
+        toggleStroke.Transparency = config.STEAL_SPEED_ENABLED and 0 or 0.7
+        
         input.TextTransparency = config.STEAL_SPEED_ENABLED and 0 or 0.5
         
         -- If disabling, stop speed immediately
@@ -689,12 +707,12 @@ local function CreateSpeedCustomizer(screenGui, config)
         Config.saveConfigDebounced()
     end)
     
-    -- Dragging logic (use title as drag handle)
+    -- Dragging logic (copied from quick action buttons - works perfectly)
     local dragging = false
     local dragStart = nil
     local startPos = nil
     
-    title.InputBegan:Connect(function(input)
+    dragHandle.InputBegan:Connect(function(input)
         if config.QUICK_ACTION_LOCKED then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -703,21 +721,19 @@ local function CreateSpeedCustomizer(screenGui, config)
         end
     end)
     
-    title.InputEnded:Connect(function(input)
+    dragHandle.InputEnded:Connect(function(input)
         if config.QUICK_ACTION_LOCKED then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if dragging then
                 dragging = false
                 config.QUICK_SPEED_BTN_X = container.AbsolutePosition.X
                 config.QUICK_SPEED_BTN_Y = container.AbsolutePosition.Y
-                -- Update anchor point when position is saved (no longer centered)
-                container.AnchorPoint = Vector2.new(0, 0)
                 Config.saveConfigDebounced()
             end
         end
     end)
     
-    Services.UserInputService.InputChanged:Connect(function(input)
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
         if config.QUICK_ACTION_LOCKED then return end
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
