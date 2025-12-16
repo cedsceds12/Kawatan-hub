@@ -627,9 +627,10 @@ local function CreateSpeedCustomizer(screenGui, config)
     toggleBtn.BackgroundTransparency = config.STEAL_SPEED_ENABLED and 0.7 or 0.4
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = config.STEAL_SPEED_ENABLED and "Enabled" or "Disabled"
-    toggleBtn.TextColor3 = accentColor
+    -- Use white text when enabled (readable on blue), blue text when disabled (readable on dark)
+    toggleBtn.TextColor3 = config.STEAL_SPEED_ENABLED and Color3.fromRGB(255, 255, 255) or accentColor
     toggleBtn.TextSize = 11
-    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Font = Enum.Font.Gotham  -- Use regular Gotham instead of Bold for better readability
     toggleBtn.ZIndex = 1000
     toggleBtn.Parent = container
     
@@ -686,6 +687,8 @@ local function CreateSpeedCustomizer(screenGui, config)
         -- Update button styling to match HTML active state
         toggleBtn.BackgroundColor3 = config.STEAL_SPEED_ENABLED and accentColor or Color3.fromRGB(50, 50, 70)
         toggleBtn.BackgroundTransparency = config.STEAL_SPEED_ENABLED and 0.7 or 0.4
+        -- Use white text when enabled (readable on blue), blue text when disabled
+        toggleBtn.TextColor3 = config.STEAL_SPEED_ENABLED and Color3.fromRGB(255, 255, 255) or accentColor
         toggleStroke.Transparency = config.STEAL_SPEED_ENABLED and 0 or 0.7
         
         input.TextTransparency = config.STEAL_SPEED_ENABLED and 0 or 0.5
@@ -707,7 +710,7 @@ local function CreateSpeedCustomizer(screenGui, config)
         Config.saveConfigDebounced()
     end)
     
-    -- Dragging logic (copied from quick action buttons - works perfectly)
+    -- Dragging logic (fixed for mobile - ensure anchor point is set before dragging)
     local dragging = false
     local dragStart = nil
     local startPos = nil
@@ -715,6 +718,14 @@ local function CreateSpeedCustomizer(screenGui, config)
     dragHandle.InputBegan:Connect(function(input)
         if config.QUICK_ACTION_LOCKED then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            -- CRITICAL: Set anchor point to top-left BEFORE getting position to prevent jumping
+            container.AnchorPoint = Vector2.new(0, 0)
+            
+            -- Get current absolute position
+            local currentPos = container.AbsolutePosition
+            -- Update container position to use top-left anchor (no jump because we just set it)
+            container.Position = UDim2.new(0, currentPos.X, 0, currentPos.Y)
+            
             dragging = true
             dragStart = input.Position
             startPos = container.AbsolutePosition
