@@ -596,11 +596,11 @@ local function CreateSpeedCustomizer(screenGui, config)
     input.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     input.BackgroundTransparency = 0.4
     input.BorderSizePixel = 0
-    input.Text = tostring(config.STEAL_SPEED or 25.5)
+    input.Text = tostring(config.STEAL_SPEED or 20)
     input.TextColor3 = accentColor
     input.TextSize = 12
     input.Font = Enum.Font.GothamBold
-    input.PlaceholderText = "16-50"
+    input.PlaceholderText = "Speed"
     input.ClearTextOnFocus = false
     input.TextTransparency = config.STEAL_SPEED_ENABLED and 0 or 0.5
     input.ZIndex = 1000
@@ -670,10 +670,13 @@ local function CreateSpeedCustomizer(screenGui, config)
     resetStroke.Transparency = 0.7
     resetStroke.Parent = resetBtn
     
-    -- Input validation
+    -- Input validation (no limits - user can set any speed)
     input.FocusLost:Connect(function()
-        local val = tonumber(input.Text) or 25.5
-        val = math.clamp(val, 16, 50)
+        local val = tonumber(input.Text)
+        if not val or val < 0 then
+            -- If invalid or negative, use default
+            val = 20
+        end
         input.Text = tostring(val)
         config.STEAL_SPEED = val
         Config.saveConfigDebounced()
@@ -705,8 +708,8 @@ local function CreateSpeedCustomizer(screenGui, config)
     
     -- Reset functionality
     resetBtn.MouseButton1Click:Connect(function()
-        input.Text = "25.5"
-        config.STEAL_SPEED = 25.5
+        input.Text = "20"
+        config.STEAL_SPEED = 20
         Config.saveConfigDebounced()
     end)
     
