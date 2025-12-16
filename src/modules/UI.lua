@@ -26,8 +26,7 @@ local function CreateWindow(config)
     
     -- Create Fluent window
     Window = Fluent:CreateWindow({
-        Title = config.title or "Kawatan Hub",
-        SubTitle = config.subtitle or "Made by Cedced",
+        Title = config.title or "Kawatan Hub v3.0",
         TabWidth = tabWidth,
         Size = windowSize,
         Acrylic = true,
@@ -45,7 +44,7 @@ local function CreateWindow(config)
     -- Create tabs
     Tabs.Combat = Window:AddTab({ Title = "Combat", Icon = "" })
     Tabs.Movement = Window:AddTab({ Title = "Movement", Icon = "" })
-    Tabs.Performance = Window:AddTab({ Title = "Performance", Icon = "" })
+    Tabs.Performance = Window:AddTab({ Title = "Perf", Icon = "" })
     Tabs.Visual = Window:AddTab({ Title = "Visual", Icon = "" })
     Tabs.Settings = Window:AddTab({ Title = "Settings", Icon = "" })
     Tabs.Keybinds = Window:AddTab({ Title = "Keybinds", Icon = "" })
@@ -189,6 +188,12 @@ end
 -- Quick action buttons storage
 local quickActionButtons = {}
 
+-- Custom UI elements storage (Top Bar, Speed Customizer)
+local customUIElements = {
+    topBar = nil,
+    speedCustomizer = nil,
+}
+
 -- Get Fluent theme accent color
 local function GetFluentAccentColor()
     -- Fluent accent color from Window.luau source: Color3.fromRGB(76, 194, 255)
@@ -273,14 +278,9 @@ local function CreateCustomToggleButton(screenGui, config, colors)
     game:GetService("UserInputService").InputChanged:Connect(function(input)
         if config.TOGGLE_MENU_LOCKED then return end
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local viewport = workspace.CurrentCamera.ViewportSize
             local delta = input.Position - dragStart
             local newX = startPos.X + delta.X
             local newY = startPos.Y + delta.Y
-            local btnSize = btn.AbsoluteSize
-            
-            newX = math.clamp(newX, 0, viewport.X - btnSize.X)
-            newY = math.clamp(newY, 0, viewport.Y - btnSize.Y)
             
             btn.Position = UDim2.new(0, newX, 0, newY)
         end
@@ -372,14 +372,9 @@ local function CreateQuickActionButton(screenGui, name, text, config, configKey,
     game:GetService("UserInputService").InputChanged:Connect(function(input)
         if config.QUICK_ACTION_LOCKED then return end
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local viewport = workspace.CurrentCamera.ViewportSize
             local delta = input.Position - dragStart
             local newX = startPos.X + delta.X
             local newY = startPos.Y + delta.Y
-            local btnSize = btn.AbsoluteSize
-            
-            newX = math.clamp(newX, 0, viewport.X - btnSize.X)
-            newY = math.clamp(newY, 0, viewport.Y - btnSize.Y)
             
             btn.Position = UDim2.new(0, newX, 0, newY)
         end
@@ -392,6 +387,303 @@ end
 -- Get quick action buttons table
 local function GetQuickActionButtons()
     return quickActionButtons
+end
+
+-- Get custom UI elements table
+local function GetCustomUIElements()
+    return customUIElements
+end
+
+-- Create Top Bar
+local function CreateTopBar(screenGui)
+    -- Destroy existing if any
+    if customUIElements.topBar then
+        customUIElements.topBar:Destroy()
+        customUIElements.topBar = nil
+    end
+    
+    local isMobile = Helpers.isMobile()
+    local accentColor = GetFluentAccentColor()
+    local surfaceColor = GetFluentSurfaceColor()
+    
+    local topBar = Instance.new("Frame")
+    topBar.Name = "TopBar"
+    topBar.Size = UDim2.new(0, 0, 0, 30) -- Auto-size with UIListLayout
+    topBar.Position = UDim2.new(0.5, 0, 0, 10)
+    topBar.AnchorPoint = Vector2.new(0.5, 0)
+    topBar.BackgroundColor3 = surfaceColor
+    topBar.BackgroundTransparency = 0.3
+    topBar.BorderSizePixel = 0
+    topBar.ZIndex = 999
+    topBar.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = topBar
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = accentColor
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = topBar
+    
+    local padding = Instance.new("UIPadding")
+    local paddingAmount = isMobile and 10 or 15
+    padding.PaddingLeft = UDim.new(0, paddingAmount)
+    padding.PaddingRight = UDim.new(0, paddingAmount)
+    padding.PaddingTop = UDim.new(0, 8)
+    padding.PaddingBottom = UDim.new(0, 8)
+    padding.Parent = topBar
+    
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.Padding = UDim.new(0, 10)
+    layout.Parent = topBar
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(0, 0, 1, 0)
+    title.AutomaticSize = Enum.AutomaticSize.X
+    title.BackgroundTransparency = 1
+    title.Text = "Kawatan Hub"
+    title.TextColor3 = accentColor
+    title.TextSize = 13
+    title.Font = Enum.Font.GothamBold
+    title.Parent = topBar
+    
+    -- Separator
+    local separator = Instance.new("TextLabel")
+    separator.Size = UDim2.new(0, 0, 1, 0)
+    separator.AutomaticSize = Enum.AutomaticSize.X
+    separator.BackgroundTransparency = 1
+    separator.Text = "|"
+    separator.TextColor3 = accentColor
+    separator.TextTransparency = 0.5
+    separator.TextSize = 13
+    separator.Font = Enum.Font.GothamBold
+    separator.Parent = topBar
+    
+    -- FPS
+    local fpsLabel = Instance.new("TextLabel")
+    fpsLabel.Size = UDim2.new(0, 0, 1, 0)
+    fpsLabel.AutomaticSize = Enum.AutomaticSize.X
+    fpsLabel.BackgroundTransparency = 1
+    fpsLabel.Text = "FPS 60"
+    fpsLabel.TextColor3 = accentColor
+    fpsLabel.TextSize = 12
+    fpsLabel.Font = Enum.Font.GothamBold
+    fpsLabel.Parent = topBar
+    
+    -- PING
+    local pingLabel = Instance.new("TextLabel")
+    pingLabel.Size = UDim2.new(0, 0, 1, 0)
+    pingLabel.AutomaticSize = Enum.AutomaticSize.X
+    pingLabel.BackgroundTransparency = 1
+    pingLabel.Text = "PING 50ms"
+    pingLabel.TextColor3 = accentColor
+    pingLabel.TextSize = 12
+    pingLabel.Font = Enum.Font.GothamBold
+    pingLabel.Parent = topBar
+    
+    -- Auto-size container after layout updates
+    task.defer(function()
+        task.wait(0.05)
+        topBar.Size = UDim2.new(0, layout.AbsoluteContentSize.X + (paddingAmount * 2), 0, 30)
+    end)
+    
+    -- FPS/Ping update loop
+    task.spawn(function()
+        local frames = 0
+        local lastTime = tick()
+        
+        Services.RunService.RenderStepped:Connect(function()
+            frames = frames + 1
+            local now = tick()
+            if now - lastTime >= 1 then
+                local fps = frames
+                frames = 0
+                lastTime = now
+                
+                local ping = Services.Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+                fpsLabel.Text = "FPS " .. fps
+                pingLabel.Text = "PING " .. math.floor(ping + 0.5) .. "ms"
+            end
+        end)
+    end)
+    
+    customUIElements.topBar = topBar
+    return topBar
+end
+
+-- Create Speed Customizer
+local function CreateSpeedCustomizer(screenGui, config)
+    -- Destroy existing if any
+    if customUIElements.speedCustomizer then
+        customUIElements.speedCustomizer:Destroy()
+        customUIElements.speedCustomizer = nil
+    end
+    
+    local isMobile = Helpers.isMobile()
+    local accentColor = GetFluentAccentColor()
+    local surfaceColor = GetFluentSurfaceColor()
+    
+    local container = Instance.new("Frame")
+    container.Name = "SpeedCustomizer"
+    local containerWidth = isMobile and 180 or 200
+    local containerHeight = isMobile and 70 or 80
+    container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
+    container.Position = UDim2.new(0.5, 0, 0, 50)
+    container.AnchorPoint = Vector2.new(0.5, 0)
+    container.BackgroundColor3 = surfaceColor
+    container.BackgroundTransparency = 0.1
+    container.BorderSizePixel = 0
+    container.ZIndex = 999
+    container.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = container
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = accentColor
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = container
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.PaddingTop = UDim.new(0, 10)
+    padding.PaddingBottom = UDim.new(0, 10)
+    padding.Parent = container
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 15)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "Steal Speed Boost"
+    title.TextColor3 = accentColor
+    title.TextSize = 11
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = container
+    
+    -- Input box
+    local input = Instance.new("TextBox")
+    input.Name = "SpeedInput"
+    input.Size = UDim2.new(1, 0, 0, 24)
+    input.Position = UDim2.new(0, 0, 0, 21)
+    input.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    input.BackgroundTransparency = 0.4
+    input.BorderSizePixel = 0
+    input.Text = tostring(config.STEAL_SPEED or 25.5)
+    input.TextColor3 = accentColor
+    input.TextSize = 12
+    input.Font = Enum.Font.GothamBold
+    input.PlaceholderText = "16-50"
+    input.ClearTextOnFocus = false
+    input.TextTransparency = config.STEAL_SPEED_ENABLED and 0 or 0.5
+    input.Parent = container
+    
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 5)
+    inputCorner.Parent = input
+    
+    local inputStroke = Instance.new("UIStroke")
+    inputStroke.Color = accentColor
+    inputStroke.Thickness = 1
+    inputStroke.Transparency = 0.7
+    inputStroke.Parent = input
+    
+    -- Toggle button
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "ToggleButton"
+    toggleBtn.Size = UDim2.new(0.48, 0, 0, 24)
+    toggleBtn.Position = UDim2.new(0, 0, 0, 51)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    toggleBtn.BackgroundTransparency = config.STEAL_SPEED_ENABLED and 0.7 or 0.4
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = config.STEAL_SPEED_ENABLED and "Enabled" or "Disabled"
+    toggleBtn.TextColor3 = accentColor
+    toggleBtn.TextSize = 11
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Parent = container
+    
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 5)
+    toggleCorner.Parent = toggleBtn
+    
+    local toggleStroke = Instance.new("UIStroke")
+    toggleStroke.Color = accentColor
+    toggleStroke.Thickness = 1
+    toggleStroke.Transparency = 0.7
+    toggleStroke.Parent = toggleBtn
+    
+    -- Reset button
+    local resetBtn = Instance.new("TextButton")
+    resetBtn.Size = UDim2.new(0.48, 0, 0, 24)
+    resetBtn.Position = UDim2.new(0.52, 0, 0, 51)
+    resetBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    resetBtn.BackgroundTransparency = 0.4
+    resetBtn.BorderSizePixel = 0
+    resetBtn.Text = "Reset"
+    resetBtn.TextColor3 = accentColor
+    resetBtn.TextSize = 11
+    resetBtn.Font = Enum.Font.GothamBold
+    resetBtn.Parent = container
+    
+    local resetCorner = Instance.new("UICorner")
+    resetCorner.CornerRadius = UDim.new(0, 5)
+    resetCorner.Parent = resetBtn
+    
+    local resetStroke = Instance.new("UIStroke")
+    resetStroke.Color = accentColor
+    resetStroke.Thickness = 1
+    resetStroke.Transparency = 0.7
+    resetStroke.Parent = resetBtn
+    
+    -- Input validation
+    input.FocusLost:Connect(function()
+        local val = tonumber(input.Text) or 25.5
+        val = math.clamp(val, 16, 50)
+        input.Text = tostring(val)
+        config.STEAL_SPEED = val
+        Config.saveConfigDebounced()
+    end)
+    
+    -- Toggle functionality
+    toggleBtn.MouseButton1Click:Connect(function()
+        config.STEAL_SPEED_ENABLED = not config.STEAL_SPEED_ENABLED
+        toggleBtn.Text = config.STEAL_SPEED_ENABLED and "Enabled" or "Disabled"
+        toggleBtn.BackgroundTransparency = config.STEAL_SPEED_ENABLED and 0.7 or 0.4
+        input.TextTransparency = config.STEAL_SPEED_ENABLED and 0 or 0.5
+        
+        -- If disabling, stop speed immediately
+        if not config.STEAL_SPEED_ENABLED then
+            if getgenv().KH and getgenv().KH.StealSpeed then
+                getgenv().KH.StealSpeed.Stop()
+            end
+        end
+        
+        Config.saveConfigDebounced()
+    end)
+    
+    -- Reset functionality
+    resetBtn.MouseButton1Click:Connect(function()
+        input.Text = "25.5"
+        config.STEAL_SPEED = 25.5
+        Config.saveConfigDebounced()
+    end)
+    
+    -- Store references for easy access
+    container.SpeedInput = input
+    container.ToggleButton = toggleBtn
+    customUIElements.speedCustomizer = container
+    
+    return container
 end
 
 return {
@@ -407,5 +699,8 @@ return {
     CreateCustomToggleButton = CreateCustomToggleButton,
     CreateQuickActionButton = CreateQuickActionButton,
     GetQuickActionButtons = GetQuickActionButtons,
+    CreateTopBar = CreateTopBar,
+    CreateSpeedCustomizer = CreateSpeedCustomizer,
+    GetCustomUIElements = GetCustomUIElements,
     Tabs = Tabs, -- Export tabs directly for more granular control if needed
 }
