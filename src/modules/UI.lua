@@ -840,8 +840,8 @@ local function CreatePVPEngageGUI(screenGui, config)
     timerBar.Name = "StealTimerBar"
     timerBar.Size = UDim2.new(1, 0, 0, 3) -- Slightly thicker for visibility
     timerBar.Position = UDim2.new(0, 0, 0, 13) -- Below title
-    timerBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    timerBar.BackgroundTransparency = 0.3 -- More visible
+    timerBar.BackgroundColor3 = Color3.fromRGB(40, 40, 50) -- Lighter background
+    timerBar.BackgroundTransparency = 0.6 -- More transparent (lighter appearance)
     timerBar.BorderSizePixel = 0
     timerBar.ZIndex = 1002 -- Above title and drag handle
     timerBar.Parent = container
@@ -854,7 +854,7 @@ local function CreatePVPEngageGUI(screenGui, config)
     timerFill.Name = "TimerFill"
     timerFill.Size = UDim2.new(0, 0, 1, 0) -- Starts at 0 width
     timerFill.Position = UDim2.new(0, 0, 0, 0)
-    timerFill.BackgroundColor3 = accentColor
+    timerFill.BackgroundColor3 = accentColor -- Simple blue color
     timerFill.BackgroundTransparency = 0
     timerFill.BorderSizePixel = 0
     timerFill.ZIndex = 1003 -- Above timer bar
@@ -1259,17 +1259,9 @@ local function CreatePVPEngageGUI(screenGui, config)
                 local duration = state.duration or 1.3
                 local progress = math.clamp(elapsed / duration, 0, 1)
                 
-                -- Update fill width (smooth animation)
+                -- Update fill width (smooth animation) - simple blue progress bar
                 timerFill.Size = UDim2.new(progress, 0, 1, 0)
-                
-                -- Change color when complete (green) or near complete (yellow)
-                if progress >= 1 then
-                    timerFill.BackgroundColor3 = Color3.fromRGB(100, 255, 180) -- Green when complete
-                elseif progress >= 0.8 then
-                    timerFill.BackgroundColor3 = Color3.fromRGB(255, 255, 100) -- Yellow when near complete
-                else
-                    timerFill.BackgroundColor3 = accentColor -- Blue during progress
-                end
+                timerFill.BackgroundColor3 = accentColor -- Always blue (simple)
             else
                 -- Reset when not active
                 timerFill.Size = UDim2.new(0, 0, 1, 0)
