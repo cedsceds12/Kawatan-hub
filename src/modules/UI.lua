@@ -188,10 +188,11 @@ end
 -- Quick action buttons storage
 local quickActionButtons = {}
 
--- Custom UI elements storage (Top Bar, Speed Customizer)
+-- Custom UI elements storage (Top Bar, Speed Customizer, PVP GUI)
 local customUIElements = {
     topBar = nil,
     speedCustomizer = nil,
+    pvpEngageGUI = nil,
 }
 
 -- Get Fluent theme accent color
@@ -766,6 +767,503 @@ local function CreateSpeedCustomizer(screenGui, config)
     return container
 end
 
+-- Create PVP Engage GUI
+local function CreatePVPEngageGUI(screenGui, config)
+    -- Destroy existing if any
+    if customUIElements.pvpEngageGUI then
+        customUIElements.pvpEngageGUI:Destroy()
+        customUIElements.pvpEngageGUI = nil
+    end
+    
+    local isMobile = Helpers.isMobile()
+    local accentColor = GetFluentAccentColor()
+    local surfaceColor = GetFluentSurfaceColor()
+    
+    local container = Instance.new("Frame")
+    container.Name = "PVPEngageGUI"
+    local containerWidth = isMobile and 220 or 250
+    local containerHeight = isMobile and 350 or 400
+    container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
+    -- Load saved position or default to below Speed Customizer
+    local defaultY = 150
+    container.Position = config.PVP_GUI_X and UDim2.new(0, config.PVP_GUI_X, 0, config.PVP_GUI_Y) or UDim2.new(0.5, 0, 0, defaultY)
+    container.AnchorPoint = config.PVP_GUI_X and Vector2.new(0, 0) or Vector2.new(0.5, 0)
+    container.BackgroundColor3 = surfaceColor
+    container.BackgroundTransparency = 0.1
+    container.BorderSizePixel = 0
+    container.ZIndex = 999
+    container.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = container
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = accentColor
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = container
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.PaddingTop = UDim.new(0, 10)
+    padding.PaddingBottom = UDim.new(0, 10)
+    padding.Parent = container
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 15)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "PVP TARGET"
+    title.TextColor3 = accentColor
+    title.TextSize = 11
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.ZIndex = 1000
+    title.Parent = container
+    
+    -- Drag handle (invisible button over title area)
+    local dragHandle = Instance.new("TextButton")
+    dragHandle.Size = UDim2.new(1, 0, 0, 15)
+    dragHandle.Position = UDim2.new(0, 0, 0, 0)
+    dragHandle.BackgroundTransparency = 1
+    dragHandle.Text = ""
+    dragHandle.ZIndex = 1001
+    dragHandle.Parent = container
+    
+    -- Target info
+    local targetInfo = Instance.new("TextLabel")
+    targetInfo.Name = "TargetInfo"
+    targetInfo.Size = UDim2.new(1, 0, 0, 20)
+    targetInfo.Position = UDim2.new(0, 0, 0, 20)
+    targetInfo.BackgroundTransparency = 1
+    targetInfo.Text = "No target locked"
+    targetInfo.TextColor3 = accentColor
+    targetInfo.TextSize = 10
+    targetInfo.Font = Enum.Font.Gotham
+    targetInfo.TextXAlignment = Enum.TextXAlignment.Left
+    targetInfo.TextWrapped = true
+    targetInfo.ZIndex = 1000
+    targetInfo.Parent = container
+    
+    -- Stage indicator
+    local stageIndicator = Instance.new("TextLabel")
+    stageIndicator.Name = "StageIndicator"
+    stageIndicator.Size = UDim2.new(1, 0, 0, 18)
+    stageIndicator.Position = UDim2.new(0, 0, 0, 42)
+    stageIndicator.BackgroundTransparency = 1
+    stageIndicator.Text = "Stage: ○○○ Ready"
+    stageIndicator.TextColor3 = accentColor
+    stageIndicator.TextSize = 10
+    stageIndicator.Font = Enum.Font.GothamBold
+    stageIndicator.TextXAlignment = Enum.TextXAlignment.Left
+    stageIndicator.ZIndex = 1000
+    stageIndicator.Parent = container
+    
+    -- Engage button
+    local engageButton = Instance.new("TextButton")
+    engageButton.Size = UDim2.new(1, 0, 0, 28)
+    engageButton.Position = UDim2.new(0, 0, 0, 65)
+    engageButton.BackgroundColor3 = accentColor
+    engageButton.BackgroundTransparency = 0.7
+    engageButton.BorderSizePixel = 0
+    engageButton.Text = "[🎯 ENGAGE (3-STAGE)]"
+    engageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    engageButton.TextSize = 11
+    engageButton.Font = Enum.Font.GothamBold
+    engageButton.ZIndex = 1000
+    engageButton.Parent = container
+    
+    local engageCorner = Instance.new("UICorner")
+    engageCorner.CornerRadius = UDim.new(0, 5)
+    engageCorner.Parent = engageButton
+    
+    local engageStroke = Instance.new("UIStroke")
+    engageStroke.Color = accentColor
+    engageStroke.Thickness = 1
+    engageStroke.Transparency = 0
+    engageStroke.Parent = engageButton
+    
+    -- Player selection section
+    local playerSectionTitle = Instance.new("TextLabel")
+    playerSectionTitle.Size = UDim2.new(1, 0, 0, 15)
+    playerSectionTitle.Position = UDim2.new(0, 0, 0, 100)
+    playerSectionTitle.BackgroundTransparency = 1
+    playerSectionTitle.Text = "Player Selection"
+    playerSectionTitle.TextColor3 = accentColor
+    playerSectionTitle.TextSize = 10
+    playerSectionTitle.Font = Enum.Font.GothamBold
+    playerSectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    playerSectionTitle.ZIndex = 1000
+    playerSectionTitle.Parent = container
+    
+    -- Compact buttons for player selection
+    local selectNearestBtn = Instance.new("TextButton")
+    selectNearestBtn.Size = UDim2.new(0.48, -3, 0, 22)
+    selectNearestBtn.Position = UDim2.new(0, 0, 0, 118)
+    selectNearestBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    selectNearestBtn.BackgroundTransparency = 0.4
+    selectNearestBtn.BorderSizePixel = 0
+    selectNearestBtn.Text = "Nearest"
+    selectNearestBtn.TextColor3 = accentColor
+    selectNearestBtn.TextSize = 9
+    selectNearestBtn.Font = Enum.Font.Gotham
+    selectNearestBtn.ZIndex = 1000
+    selectNearestBtn.Parent = container
+    
+    local btnCorner1 = Instance.new("UICorner")
+    btnCorner1.CornerRadius = UDim.new(0, 5)
+    btnCorner1.Parent = selectNearestBtn
+    
+    local selectHighestBtn = Instance.new("TextButton")
+    selectHighestBtn.Size = UDim2.new(0.48, -3, 0, 22)
+    selectHighestBtn.Position = UDim2.new(0.52, 3, 0, 118)
+    selectHighestBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    selectHighestBtn.BackgroundTransparency = 0.4
+    selectHighestBtn.BorderSizePixel = 0
+    selectHighestBtn.Text = "Highest"
+    selectHighestBtn.TextColor3 = accentColor
+    selectHighestBtn.TextSize = 9
+    selectHighestBtn.Font = Enum.Font.Gotham
+    selectHighestBtn.ZIndex = 1000
+    selectHighestBtn.Parent = container
+    
+    local btnCorner2 = Instance.new("UICorner")
+    btnCorner2.CornerRadius = UDim.new(0, 5)
+    btnCorner2.Parent = selectHighestBtn
+    
+    local unlockBtn = Instance.new("TextButton")
+    unlockBtn.Size = UDim2.new(1, 0, 0, 22)
+    unlockBtn.Position = UDim2.new(0, 0, 0, 145)
+    unlockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    unlockBtn.BackgroundTransparency = 0.4
+    unlockBtn.BorderSizePixel = 0
+    unlockBtn.Text = "Unlock"
+    unlockBtn.TextColor3 = accentColor
+    unlockBtn.TextSize = 9
+    unlockBtn.Font = Enum.Font.Gotham
+    unlockBtn.ZIndex = 1000
+    unlockBtn.Parent = container
+    
+    local btnCorner3 = Instance.new("UICorner")
+    btnCorner3.CornerRadius = UDim.new(0, 5)
+    btnCorner3.Parent = unlockBtn
+    
+    -- Player dropdown (scrollable)
+    local playerScrollFrame = Instance.new("ScrollingFrame")
+    playerScrollFrame.Name = "PlayerScrollFrame"
+    playerScrollFrame.Size = UDim2.new(1, 0, 0, 60)
+    playerScrollFrame.Position = UDim2.new(0, 0, 0, 172)
+    playerScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    playerScrollFrame.BackgroundTransparency = 0.5
+    playerScrollFrame.BorderSizePixel = 0
+    playerScrollFrame.ScrollBarThickness = 4
+    playerScrollFrame.ZIndex = 1000
+    playerScrollFrame.Parent = container
+    
+    local playerScrollCorner = Instance.new("UICorner")
+    playerScrollCorner.CornerRadius = UDim.new(0, 5)
+    playerScrollCorner.Parent = playerScrollFrame
+    
+    local playerListLayout = Instance.new("UIListLayout")
+    playerListLayout.Padding = UDim.new(0, 2)
+    playerListLayout.SortOrder = Enum.SortOrder.Name
+    playerListLayout.Parent = playerScrollFrame
+    
+    -- Brainrot list section (shown when player selected)
+    local brainrotSectionTitle = Instance.new("TextLabel")
+    brainrotSectionTitle.Name = "BrainrotSectionTitle"
+    brainrotSectionTitle.Size = UDim2.new(1, 0, 0, 15)
+    brainrotSectionTitle.Position = UDim2.new(0, 0, 0, 240)
+    brainrotSectionTitle.BackgroundTransparency = 1
+    brainrotSectionTitle.Text = "First Floor Brainrots"
+    brainrotSectionTitle.TextColor3 = accentColor
+    brainrotSectionTitle.TextSize = 10
+    brainrotSectionTitle.Font = Enum.Font.GothamBold
+    brainrotSectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    brainrotSectionTitle.Visible = false
+    brainrotSectionTitle.ZIndex = 1000
+    brainrotSectionTitle.Parent = container
+    
+    local brainrotScrollFrame = Instance.new("ScrollingFrame")
+    brainrotScrollFrame.Name = "BrainrotScrollFrame"
+    brainrotScrollFrame.Size = UDim2.new(1, 0, 0, isMobile and 80 or 100)
+    brainrotScrollFrame.Position = UDim2.new(0, 0, 0, 258)
+    brainrotScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    brainrotScrollFrame.BackgroundTransparency = 0.5
+    brainrotScrollFrame.BorderSizePixel = 0
+    brainrotScrollFrame.ScrollBarThickness = 4
+    brainrotScrollFrame.Visible = false
+    brainrotScrollFrame.ZIndex = 1000
+    brainrotScrollFrame.Parent = container
+    
+    local brainrotScrollCorner = Instance.new("UICorner")
+    brainrotScrollCorner.CornerRadius = UDim.new(0, 5)
+    brainrotScrollCorner.Parent = brainrotScrollFrame
+    
+    local brainrotListLayout = Instance.new("UIListLayout")
+    brainrotListLayout.Padding = UDim.new(0, 2)
+    brainrotListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    brainrotListLayout.Parent = brainrotScrollFrame
+    
+    -- Function to update player list
+    local function updatePlayerList()
+        -- Clear existing
+        for _, child in ipairs(playerScrollFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        
+        local PVP = getgenv().KH and getgenv().KH.PVP
+        if not PVP then return end
+        
+        local players = Services.Players:GetPlayers()
+        for _, player in ipairs(players) do
+            if player ~= Services.LocalPlayer then
+                local btn = Instance.new("TextButton")
+                btn.Size = UDim2.new(1, -4, 0, 20)
+                btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                btn.BackgroundTransparency = 0.4
+                btn.BorderSizePixel = 0
+                btn.Text = player.Name
+                btn.TextColor3 = accentColor
+                btn.TextSize = 9
+                btn.Font = Enum.Font.Gotham
+                btn.ZIndex = 1001
+                btn.Parent = playerScrollFrame
+                
+                local btnCorner = Instance.new("UICorner")
+                btnCorner.CornerRadius = UDim.new(0, 3)
+                btnCorner.Parent = btn
+                
+                -- Highlight if selected
+                if PVP.TARGET.player == player then
+                    btn.BackgroundColor3 = accentColor
+                    btn.BackgroundTransparency = 0.7
+                    btn.Text = "✓ " .. player.Name
+                end
+                
+                btn.MouseButton1Click:Connect(function()
+                    PVP.lockPVPTarget(player)
+                    updatePlayerList()
+                    updateBrainrotList()
+                end)
+            end
+        end
+        
+        playerScrollFrame.CanvasSize = UDim2.new(0, 0, 0, playerListLayout.AbsoluteContentSize.Y)
+    end
+    
+    -- Function to update brainrot list
+    local function updateBrainrotList()
+        local PVP = getgenv().KH and getgenv().KH.PVP
+        if not PVP or not PVP.TARGET.player then
+            brainrotSectionTitle.Visible = false
+            brainrotScrollFrame.Visible = false
+            return
+        end
+        
+        -- Clear existing
+        for _, child in ipairs(brainrotScrollFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        
+        local brainrots = PVP.getFirstFloorBrainrots(PVP.TARGET.player)
+        
+        if #brainrots == 0 then
+            brainrotSectionTitle.Visible = false
+            brainrotScrollFrame.Visible = false
+            return
+        end
+        
+        brainrotSectionTitle.Visible = true
+        brainrotScrollFrame.Visible = true
+        
+        for i, animalData in ipairs(brainrots) do
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -4, 0, 22)
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            btn.BackgroundTransparency = 0.4
+            btn.BorderSizePixel = 0
+            btn.Text = animalData.name .. " | " .. animalData.genText
+            btn.TextColor3 = accentColor
+            btn.TextSize = 9
+            btn.Font = Enum.Font.Gotham
+            btn.ZIndex = 1001
+            btn.LayoutOrder = i
+            btn.Parent = brainrotScrollFrame
+            
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 3)
+            btnCorner.Parent = btn
+            
+            -- Highlight if locked
+            if PVP.TARGET.locked and PVP.TARGET.animalData and PVP.TARGET.animalData.uid == animalData.uid then
+                btn.BackgroundColor3 = accentColor
+                btn.BackgroundTransparency = 0.7
+                btn.Text = "✓ " .. btn.Text
+            end
+            
+            btn.MouseButton1Click:Connect(function()
+                PVP.lockPVPBrainrot(animalData)
+                updateBrainrotList()
+            end)
+        end
+        
+        brainrotScrollFrame.CanvasSize = UDim2.new(0, 0, 0, brainrotListLayout.AbsoluteContentSize.Y)
+    end
+    
+    -- Button click handlers
+    selectNearestBtn.MouseButton1Click:Connect(function()
+        local PVP = getgenv().KH and getgenv().KH.PVP
+        if not PVP then return end
+        
+        local hrp = Helpers.getHRP()
+        if not hrp then return end
+        
+        local nearestPlayer = nil
+        local minDist = math.huge
+        
+        for _, player in ipairs(Services.Players:GetPlayers()) do
+            if player ~= Services.LocalPlayer and player.Character then
+                local char = player.Character
+                local playerHrp = char:FindFirstChild("HumanoidRootPart")
+                if playerHrp then
+                    local dist = (hrp.Position - playerHrp.Position).Magnitude
+                    if dist < minDist then
+                        minDist = dist
+                        nearestPlayer = player
+                    end
+                end
+            end
+        end
+        
+        if nearestPlayer then
+            PVP.lockPVPTarget(nearestPlayer)
+            updatePlayerList()
+            updateBrainrotList()
+        end
+    end)
+    
+    selectHighestBtn.MouseButton1Click:Connect(function()
+        local PVP = getgenv().KH and getgenv().KH.PVP
+        if not PVP then return end
+        
+        local highestPlayer = nil
+        local highestValue = 0
+        
+        for _, player in ipairs(Services.Players:GetPlayers()) do
+            if player ~= Services.LocalPlayer then
+                local brainrots = PVP.getFirstFloorBrainrots(player)
+                if #brainrots > 0 and brainrots[1].genValue > highestValue then
+                    highestValue = brainrots[1].genValue
+                    highestPlayer = player
+                end
+            end
+        end
+        
+        if highestPlayer then
+            PVP.lockPVPTarget(highestPlayer)
+            updatePlayerList()
+            updateBrainrotList()
+        end
+    end)
+    
+    unlockBtn.MouseButton1Click:Connect(function()
+        local PVP = getgenv().KH and getgenv().KH.PVP
+        if PVP then
+            PVP.unlockPVPTarget()
+            updatePlayerList()
+            updateBrainrotList()
+        end
+    end)
+    
+    engageButton.MouseButton1Click:Connect(function()
+        local PVP = getgenv().KH and getgenv().KH.PVP
+        if PVP and PVP.execute3StageEngage then
+            PVP.execute3StageEngage()
+        end
+    end)
+    
+    -- Auto-update loop for target info
+    task.spawn(function()
+        while container and container.Parent do
+            local PVP = getgenv().KH and getgenv().KH.PVP
+            if PVP and PVP.TARGET.locked and PVP.TARGET.animalData then
+                local distance = PVP.getPVPTargetDistance()
+                local name = PVP.TARGET.player and PVP.TARGET.player.Name or "Unknown"
+                local value = PVP.TARGET.animalData.genText or "N/A"
+                targetInfo.Text = string.format("%s | %dm | %s", name, math.floor(distance), value)
+                engageButton.BackgroundTransparency = 0.7
+            else
+                targetInfo.Text = "No target locked"
+                engageButton.BackgroundTransparency = 0.9
+            end
+            task.wait(0.1)
+        end
+    end)
+    
+    -- Refresh lists periodically
+    task.spawn(function()
+        while container and container.Parent do
+            updatePlayerList()
+            updateBrainrotList()
+            task.wait(1.0)
+        end
+    end)
+    
+    -- Initial update
+    updatePlayerList()
+    updateBrainrotList()
+    
+    -- Dragging logic
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    dragHandle.InputBegan:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            container.AnchorPoint = Vector2.new(0, 0)
+            local currentPos = container.AbsolutePosition
+            container.Position = UDim2.new(0, currentPos.X, 0, currentPos.Y)
+            dragging = true
+            dragStart = input.Position
+            startPos = container.AbsolutePosition
+        end
+    end)
+    
+    dragHandle.InputEnded:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                config.PVP_GUI_X = container.AbsolutePosition.X
+                config.PVP_GUI_Y = container.AbsolutePosition.Y
+                Config.saveConfigDebounced()
+            end
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if config.QUICK_ACTION_LOCKED then return end
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            local newX = startPos.X + delta.X
+            local newY = startPos.Y + delta.Y
+            container.Position = UDim2.new(0, newX, 0, newY)
+        end
+    end)
+    
+    customUIElements.pvpEngageGUI = container
+    return container
+end
+
 return {
     CreateWindow = CreateWindow,
     AddToggle = AddToggle,
@@ -781,6 +1279,7 @@ return {
     GetQuickActionButtons = GetQuickActionButtons,
     CreateTopBar = CreateTopBar,
     CreateSpeedCustomizer = CreateSpeedCustomizer,
+    CreatePVPEngageGUI = CreatePVPEngageGUI,
     GetCustomUIElements = GetCustomUIElements,
     Tabs = Tabs, -- Export tabs directly for more granular control if needed
 }
