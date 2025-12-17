@@ -944,6 +944,13 @@ local function CreatePVPEngageGUI(screenGui, config)
     brainrotListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     brainrotListLayout.Parent = brainrotScrollFrame
     
+    -- Auto-update canvas size when layout changes (more efficient than manual updates)
+    brainrotListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        if brainrotScrollFrame and brainrotScrollFrame.Parent and brainrotListLayout then
+            brainrotScrollFrame.CanvasSize = UDim2.new(0, 0, 0, math.max(brainrotListLayout.AbsoluteContentSize.Y, 20))
+        end
+    end)
+    
     -- Refresh button (positioned after brainrot list: 147 + 90/110 + 5 spacing = 242/262)
     local refreshButton = Instance.new("TextButton")
     refreshButton.Name = "RefreshButton"
@@ -1046,7 +1053,30 @@ local function CreatePVPEngageGUI(screenGui, config)
         end
         
         -- Get ALL brainrots for selected player (not just first-floor)
-        local brainrots = PVP.getAllPlayerBrainrots(PVP.TARGET.player)
+        -- Add error handling to prevent crashes if function is nil
+        local success, brainrots = pcall(function()
+            if not PVP.getAllPlayerBrainrots or type(PVP.getAllPlayerBrainrots) ~= "function" then
+                error("getAllPlayerBrainrots function not available")
+            end
+            return PVP.getAllPlayerBrainrots(PVP.TARGET.player)
+        end)
+        
+        if not success or not brainrots then
+            brainrotSectionTitle.Visible = true
+            brainrotScrollFrame.Visible = true
+            -- Show error message
+            local errorLabel = Instance.new("TextLabel")
+            errorLabel.Size = UDim2.new(1, -4, 0, 20)
+            errorLabel.BackgroundTransparency = 1
+            errorLabel.Text = "Error: Function not loaded"
+            errorLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            errorLabel.TextSize = 9
+            errorLabel.Font = Enum.Font.Gotham
+            errorLabel.ZIndex = 1001
+            errorLabel.Parent = brainrotScrollFrame
+            brainrotScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 25)
+            return
+        end
         
         if #brainrots == 0 then
             brainrotSectionTitle.Visible = true
@@ -1097,17 +1127,13 @@ local function CreatePVPEngageGUI(screenGui, config)
                 local success = PVP.lockPVPBrainrot(animalData)
                 if success then
                     updateBrainrotList()
-                    -- Update target info immediately
-                    task.wait(0.05)
+                    -- No blocking wait needed - updateBrainrotList handles everything
                 end
             end)
         end
         
-        -- Update canvas size after layout updates
-        task.defer(function()
-            task.wait(0.05)
-            brainrotScrollFrame.CanvasSize = UDim2.new(0, 0, 0, math.max(brainrotListLayout.AbsoluteContentSize.Y, 20))
-        end)
+        -- Canvas size is automatically updated via GetPropertyChangedSignal on brainrotListLayout
+        -- No manual update needed here
     end
     
     -- TP button click handler (uses 3-stage engage)
