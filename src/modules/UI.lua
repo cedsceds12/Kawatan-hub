@@ -1233,14 +1233,20 @@ local function CreatePVPEngageGUI(screenGui, config)
     
     -- Steal timer update (real-time via Heartbeat for smooth animation)
     local timerConnection = nil
-    if Services and Services.RunService then
-        timerConnection = Services.RunService.Heartbeat:Connect(function()
+    -- Use game:GetService directly to ensure RunService is available
+    local RunService = game:GetService("RunService")
+    if RunService then
+        timerConnection = RunService.Heartbeat:Connect(function()
             if not container or not container.Parent or not timerBar or not timerBar.Parent or not timerFill or not timerFill.Parent then
                 return
             end
             
-            local PVP = getgenv().KH and getgenv().KH.PVP
-            if not PVP or not PVP.STEAL_STATE then
+            -- Get PVP state (with better error handling)
+            local success, PVP = pcall(function()
+                return getgenv().KH and getgenv().KH.PVP
+            end)
+            
+            if not success or not PVP or not PVP.STEAL_STATE then
                 -- Reset timer when state not available
                 timerFill.Size = UDim2.new(0, 0, 1, 0)
                 timerFill.BackgroundColor3 = accentColor
@@ -1248,9 +1254,10 @@ local function CreatePVPEngageGUI(screenGui, config)
             end
             
             local state = PVP.STEAL_STATE
-            if state.active and state.startTime > 0 then
+            if state and state.active and state.startTime and state.startTime > 0 then
                 local elapsed = tick() - state.startTime
-                local progress = math.clamp(elapsed / state.duration, 0, 1)
+                local duration = state.duration or 1.3
+                local progress = math.clamp(elapsed / duration, 0, 1)
                 
                 -- Update fill width (smooth animation)
                 timerFill.Size = UDim2.new(progress, 0, 1, 0)
