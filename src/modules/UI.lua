@@ -782,8 +782,8 @@ local function CreatePVPEngageGUI(screenGui, config)
     local container = Instance.new("Frame")
     container.Name = "PVPEngageGUI"
     local containerWidth = isMobile and 200 or 230
-    -- Compact height: title(15) + targetInfo(18) + TP button(26) + player title(15) + player list(50) + brainrot title(15) + brainrot list(80) + refresh(22) + padding(20) = ~261px mobile, ~280px desktop
-    local containerHeight = isMobile and 240 or 260
+    -- Height: title(13) + targetInfo(16) + TP button(24) + player title(13) + player list(50) + brainrot title(13) + brainrot list(90/110) + spacing(5) + refresh(20) + padding(16) = ~264px mobile, ~284px desktop
+    local containerHeight = isMobile and 265 or 285
     container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
     -- Load saved position or default to below Speed Customizer
     local defaultY = 150
@@ -914,7 +914,7 @@ local function CreatePVPEngageGUI(screenGui, config)
     brainrotSectionTitle.Size = UDim2.new(1, 0, 0, 13)
     brainrotSectionTitle.Position = UDim2.new(0, 0, 0, 131)
     brainrotSectionTitle.BackgroundTransparency = 1
-    brainrotSectionTitle.Text = "Brainrots (1F)"
+    brainrotSectionTitle.Text = "Brainrots"
     brainrotSectionTitle.TextColor3 = accentColor
     brainrotSectionTitle.TextSize = 9
     brainrotSectionTitle.Font = Enum.Font.GothamBold
@@ -925,7 +925,7 @@ local function CreatePVPEngageGUI(screenGui, config)
     
     local brainrotScrollFrame = Instance.new("ScrollingFrame")
     brainrotScrollFrame.Name = "BrainrotScrollFrame"
-    brainrotScrollFrame.Size = UDim2.new(1, 0, 0, isMobile and 60 or 70)
+    brainrotScrollFrame.Size = UDim2.new(1, 0, 0, isMobile and 90 or 110)
     brainrotScrollFrame.Position = UDim2.new(0, 0, 0, 147)
     brainrotScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     brainrotScrollFrame.BackgroundTransparency = 0.5
@@ -944,11 +944,11 @@ local function CreatePVPEngageGUI(screenGui, config)
     brainrotListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     brainrotListLayout.Parent = brainrotScrollFrame
     
-    -- Refresh button
+    -- Refresh button (positioned after brainrot list: 147 + 90/110 + 5 spacing = 242/262)
     local refreshButton = Instance.new("TextButton")
     refreshButton.Name = "RefreshButton"
     refreshButton.Size = UDim2.new(1, 0, 0, 20)
-    refreshButton.Position = UDim2.new(0, 0, 0, isMobile and 220 or 240)
+    refreshButton.Position = UDim2.new(0, 0, 0, isMobile and 242 or 262)
     refreshButton.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     refreshButton.BackgroundTransparency = 0.4
     refreshButton.BorderSizePixel = 0
@@ -1045,8 +1045,8 @@ local function CreatePVPEngageGUI(screenGui, config)
             end
         end
         
-        -- Get brainrots for selected player
-        local brainrots = PVP.getFirstFloorBrainrots(PVP.TARGET.player)
+        -- Get ALL brainrots for selected player (not just first-floor)
+        local brainrots = PVP.getAllPlayerBrainrots(PVP.TARGET.player)
         
         if #brainrots == 0 then
             brainrotSectionTitle.Visible = true
@@ -1055,7 +1055,7 @@ local function CreatePVPEngageGUI(screenGui, config)
             local noBrainrotsLabel = Instance.new("TextLabel")
             noBrainrotsLabel.Size = UDim2.new(1, -4, 0, 20)
             noBrainrotsLabel.BackgroundTransparency = 1
-            noBrainrotsLabel.Text = "No first-floor brainrots"
+            noBrainrotsLabel.Text = "No brainrots found"
             noBrainrotsLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
             noBrainrotsLabel.TextSize = 9
             noBrainrotsLabel.Font = Enum.Font.Gotham
