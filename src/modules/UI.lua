@@ -783,7 +783,8 @@ local function CreatePVPEngageGUI(screenGui, config)
     container.Name = "PVPEngageGUI"
     local containerWidth = isMobile and 200 or 230
     -- Height: title(13) + targetInfo(16) + TP button(24) + player title(13) + player list(50) + brainrot title(13) + brainrot list(90/110) + spacing(5) + refresh(20) + padding(16) = ~264px mobile, ~284px desktop
-    local containerHeight = isMobile and 265 or 285
+    -- Height: title(13) + timer(3) + targetInfo(16) + TP button(24) + player title(13) + player list(50) + brainrot title(13) + brainrot list(90/110) + spacing(5) + refresh(20) + padding(16) = ~267px mobile, ~287px desktop
+    local containerHeight = isMobile and 267 or 287
     container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
     -- Load saved position or default to below Speed Customizer
     local defaultY = 150
@@ -834,19 +835,19 @@ local function CreatePVPEngageGUI(screenGui, config)
     dragHandle.ZIndex = 1001
     dragHandle.Parent = container
     
-    -- Steal Timer Bar (visual progress indicator)
+    -- Steal Timer Bar (visual progress indicator) - positioned below title
     local timerBar = Instance.new("Frame")
     timerBar.Name = "StealTimerBar"
-    timerBar.Size = UDim2.new(1, 0, 0, 2) -- Thin line
-    timerBar.Position = UDim2.new(0, 0, 0, 13)
-    timerBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    timerBar.BackgroundTransparency = 0.7
+    timerBar.Size = UDim2.new(1, 0, 0, 3) -- Slightly thicker for visibility
+    timerBar.Position = UDim2.new(0, 0, 0, 13) -- Below title
+    timerBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    timerBar.BackgroundTransparency = 0.3 -- More visible
     timerBar.BorderSizePixel = 0
-    timerBar.ZIndex = 1000
+    timerBar.ZIndex = 1002 -- Above title and drag handle
     timerBar.Parent = container
     
     local timerBarCorner = Instance.new("UICorner")
-    timerBarCorner.CornerRadius = UDim.new(0, 1)
+    timerBarCorner.CornerRadius = UDim.new(0, 2)
     timerBarCorner.Parent = timerBar
     
     local timerFill = Instance.new("Frame")
@@ -856,18 +857,18 @@ local function CreatePVPEngageGUI(screenGui, config)
     timerFill.BackgroundColor3 = accentColor
     timerFill.BackgroundTransparency = 0
     timerFill.BorderSizePixel = 0
-    timerFill.ZIndex = 1001
+    timerFill.ZIndex = 1003 -- Above timer bar
     timerFill.Parent = timerBar
     
     local timerFillCorner = Instance.new("UICorner")
-    timerFillCorner.CornerRadius = UDim.new(0, 1)
+    timerFillCorner.CornerRadius = UDim.new(0, 2)
     timerFillCorner.Parent = timerFill
     
-    -- Target info (compact) - moved down to make room for timer
+    -- Target info (compact) - moved down to make room for timer (13 title + 3 timer = 16)
     local targetInfo = Instance.new("TextLabel")
     targetInfo.Name = "TargetInfo"
     targetInfo.Size = UDim2.new(1, 0, 0, 16)
-    targetInfo.Position = UDim2.new(0, 0, 0, 18) -- Moved down by 2px (timer height)
+    targetInfo.Position = UDim2.new(0, 0, 0, 19) -- Moved down by 3px (timer height) (timer height)
     targetInfo.BackgroundTransparency = 1
     targetInfo.Text = "No target"
     targetInfo.TextColor3 = accentColor
@@ -878,11 +879,11 @@ local function CreatePVPEngageGUI(screenGui, config)
     targetInfo.ZIndex = 1000
     targetInfo.Parent = container
     
-    -- TP button (simplified text) - moved down by 2px
+    -- TP button (simplified text) - moved down by 3px
     local tpButton = Instance.new("TextButton")
     tpButton.Name = "TPButton"
     tpButton.Size = UDim2.new(1, 0, 0, 24)
-    tpButton.Position = UDim2.new(0, 0, 0, 37) -- Moved down by 2px
+    tpButton.Position = UDim2.new(0, 0, 0, 38) -- Moved down by 3px (timer height)
     tpButton.BackgroundColor3 = accentColor
     tpButton.BackgroundTransparency = 0.7
     tpButton.BorderSizePixel = 0
@@ -906,7 +907,7 @@ local function CreatePVPEngageGUI(screenGui, config)
     -- Player selection section (compact)
     local playerSectionTitle = Instance.new("TextLabel")
     playerSectionTitle.Size = UDim2.new(1, 0, 0, 13)
-    playerSectionTitle.Position = UDim2.new(0, 0, 0, 62)
+    playerSectionTitle.Position = UDim2.new(0, 0, 0, 65) -- Moved down by 3px
     playerSectionTitle.BackgroundTransparency = 1
     playerSectionTitle.Text = "Players"
     playerSectionTitle.TextColor3 = accentColor
@@ -916,11 +917,11 @@ local function CreatePVPEngageGUI(screenGui, config)
     playerSectionTitle.ZIndex = 1000
     playerSectionTitle.Parent = container
     
-    -- Player dropdown (scrollable, compact) - moved down by 2px
+    -- Player dropdown (scrollable, compact) - moved down by 3px
     local playerScrollFrame = Instance.new("ScrollingFrame")
     playerScrollFrame.Name = "PlayerScrollFrame"
     playerScrollFrame.Size = UDim2.new(1, 0, 0, isMobile and 45 or 50)
-    playerScrollFrame.Position = UDim2.new(0, 0, 0, 80) -- Moved down by 2px
+    playerScrollFrame.Position = UDim2.new(0, 0, 0, 81) -- Moved down by 3px
     playerScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     playerScrollFrame.BackgroundTransparency = 0.5
     playerScrollFrame.BorderSizePixel = 0
@@ -937,11 +938,11 @@ local function CreatePVPEngageGUI(screenGui, config)
     playerListLayout.SortOrder = Enum.SortOrder.Name
     playerListLayout.Parent = playerScrollFrame
     
-    -- Brainrot list section (shown when player selected) - moved down by 2px
+    -- Brainrot list section (shown when player selected) - moved down by 3px
     local brainrotSectionTitle = Instance.new("TextLabel")
     brainrotSectionTitle.Name = "BrainrotSectionTitle"
     brainrotSectionTitle.Size = UDim2.new(1, 0, 0, 13)
-    brainrotSectionTitle.Position = UDim2.new(0, 0, 0, 133) -- Moved down by 2px
+    brainrotSectionTitle.Position = UDim2.new(0, 0, 0, 134) -- Moved down by 3px
     brainrotSectionTitle.BackgroundTransparency = 1
     brainrotSectionTitle.Text = "Brainrots"
     brainrotSectionTitle.TextColor3 = accentColor
@@ -955,7 +956,7 @@ local function CreatePVPEngageGUI(screenGui, config)
     local brainrotScrollFrame = Instance.new("ScrollingFrame")
     brainrotScrollFrame.Name = "BrainrotScrollFrame"
     brainrotScrollFrame.Size = UDim2.new(1, 0, 0, isMobile and 90 or 110)
-    brainrotScrollFrame.Position = UDim2.new(0, 0, 0, 149) -- Moved down by 2px
+    brainrotScrollFrame.Position = UDim2.new(0, 0, 0, 150) -- Moved down by 3px
     brainrotScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     brainrotScrollFrame.BackgroundTransparency = 0.5
     brainrotScrollFrame.BorderSizePixel = 0
@@ -984,7 +985,7 @@ local function CreatePVPEngageGUI(screenGui, config)
     local refreshButton = Instance.new("TextButton")
     refreshButton.Name = "RefreshButton"
     refreshButton.Size = UDim2.new(1, 0, 0, 20)
-    refreshButton.Position = UDim2.new(0, 0, 0, isMobile and 244 or 264) -- Moved down by 2px
+    refreshButton.Position = UDim2.new(0, 0, 0, isMobile and 245 or 265) -- Moved down by 3px
     refreshButton.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     refreshButton.BackgroundTransparency = 0.4
     refreshButton.BorderSizePixel = 0
@@ -1231,41 +1232,44 @@ local function CreatePVPEngageGUI(screenGui, config)
     end)
     
     -- Steal timer update (real-time via Heartbeat for smooth animation)
-    local timerConnection = Services.RunService.Heartbeat:Connect(function()
-        if not container or not container.Parent or not timerFill or not timerFill.Parent then
-            return
-        end
-        
-        local PVP = getgenv().KH and getgenv().KH.PVP
-        if not PVP or not PVP.STEAL_STATE then
-            -- Reset timer when state not available
-            timerFill.Size = UDim2.new(0, 0, 1, 0)
-            timerFill.BackgroundColor3 = accentColor
-            return
-        end
-        
-        local state = PVP.STEAL_STATE
-        if state.active and state.startTime > 0 then
-            local elapsed = tick() - state.startTime
-            local progress = math.clamp(elapsed / state.duration, 0, 1)
-            
-            -- Update fill width (smooth animation)
-            timerFill.Size = UDim2.new(progress, 0, 1, 0)
-            
-            -- Change color when complete (green) or near complete (yellow)
-            if progress >= 1 then
-                timerFill.BackgroundColor3 = Color3.fromRGB(100, 255, 180) -- Green when complete
-            elseif progress >= 0.8 then
-                timerFill.BackgroundColor3 = Color3.fromRGB(255, 255, 100) -- Yellow when near complete
-            else
-                timerFill.BackgroundColor3 = accentColor -- Blue during progress
+    local timerConnection = nil
+    if Services and Services.RunService then
+        timerConnection = Services.RunService.Heartbeat:Connect(function()
+            if not container or not container.Parent or not timerBar or not timerBar.Parent or not timerFill or not timerFill.Parent then
+                return
             end
-        else
-            -- Reset when not active
-            timerFill.Size = UDim2.new(0, 0, 1, 0)
-            timerFill.BackgroundColor3 = accentColor
-        end
-    end)
+            
+            local PVP = getgenv().KH and getgenv().KH.PVP
+            if not PVP or not PVP.STEAL_STATE then
+                -- Reset timer when state not available
+                timerFill.Size = UDim2.new(0, 0, 1, 0)
+                timerFill.BackgroundColor3 = accentColor
+                return
+            end
+            
+            local state = PVP.STEAL_STATE
+            if state.active and state.startTime > 0 then
+                local elapsed = tick() - state.startTime
+                local progress = math.clamp(elapsed / state.duration, 0, 1)
+                
+                -- Update fill width (smooth animation)
+                timerFill.Size = UDim2.new(progress, 0, 1, 0)
+                
+                -- Change color when complete (green) or near complete (yellow)
+                if progress >= 1 then
+                    timerFill.BackgroundColor3 = Color3.fromRGB(100, 255, 180) -- Green when complete
+                elseif progress >= 0.8 then
+                    timerFill.BackgroundColor3 = Color3.fromRGB(255, 255, 100) -- Yellow when near complete
+                else
+                    timerFill.BackgroundColor3 = accentColor -- Blue during progress
+                end
+            else
+                -- Reset when not active
+                timerFill.Size = UDim2.new(0, 0, 1, 0)
+                timerFill.BackgroundColor3 = accentColor
+            end
+        end)
+    end
     
     -- Cleanup timer connection when GUI is destroyed
     container.AncestryChanged:Connect(function()
